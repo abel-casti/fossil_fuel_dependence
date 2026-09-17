@@ -1,14 +1,12 @@
-from dotenv import load_dotenv
 from entsoe import EntsoePandasClient
 import pandas as pd
 import os
 
 
 def get_entsoe_client():
-    # Get API token from .env file
-    load_dotenv()
-    API_TOKEN = os.getenv("ENTSOE_API_TOKEN")
 
+    # Get API token from .env file
+    API_TOKEN = os.getenv("ENTSOE_API_TOKEN")
     if not API_TOKEN:
         raise ValueError("ENTSOE_API_TOKEN not found in .env file")
 
@@ -57,3 +55,6 @@ if __name__ == "__main__":
 
     # Get load data
     df_load = fetch_load_data(client, start, end, country_code)
+
+    print(df_generation.head())
+    print(df_load.head())

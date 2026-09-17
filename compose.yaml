@@ -13,6 +13,7 @@ services:
     image: "mcr.microsoft.com/devcontainers/python:3-3.14-trixie"
     command: sleep infinity
     environment:
+      ENTSOE_API_TOKEN: ${ENTSOE_API_TOKEN}
       POSTGRES_HOST: postgres_db
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
