@@ -1,0 +1,3 @@
+pandas          # Handling dfs
+entsoe-py       # API wrapper for ENTSO-E
+dotenv          # Load environment variables from .env file
