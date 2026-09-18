@@ -1,25 +1,47 @@
+import os
+
 from entsoe import EntsoePandasClient
 import pandas as pd
-import os
+import sqlalchemy
+
+
+def sqlalchemy_engine_setup():
+    """Create and return a SQLAlchemy engine connected to the Postgres DB."""
+
+    postgres_user = os.getenv("POSTGRES_USER")
+    postgres_password = os.getenv("POSTGRES_PASSWORD")
+    postgres_host = os.getenv("POSTGRES_HOST")
+    postgres_db = os.getenv("POSTGRES_DB")
+
+    if not postgres_user or not postgres_password or not postgres_host or not postgres_db:
+        raise ValueError("Missing postgres connection parameter(s) on .env file")
+
+    url = sqlalchemy.URL.create(
+        drivername="postgresql+pg8000",
+        username=postgres_user,
+        password=postgres_password,
+        host=postgres_host,
+        database=postgres_db
+    )
+
+    return sqlalchemy.create_engine(url)
 
 
 def get_entsoe_client():
+    """Initialize and return the ENTSO-E Pandas client."""
 
-    # Get API token from .env file
-    API_TOKEN = os.getenv("ENTSOE_API_TOKEN")
-    if not API_TOKEN:
+    api_token = os.getenv("ENTSOE_API_TOKEN")
+    if not api_token:
         raise ValueError("ENTSOE_API_TOKEN not found in .env file")
 
-    # Return the ENTSOE client for pandas
-    return EntsoePandasClient(api_key=API_TOKEN)
-
+    return EntsoePandasClient(api_key=api_token)
 
 
 def fetch_generation_data(client, start, end, country_code):
-    # Make API call through the ENTSOE client
+    """Get and flatten generation data for a given contry and datetime range"""
+
     df_generation = client.query_generation(country_code, start=start, end=end, psr_type=None)
 
-    # Flatten and format MultiIndex columns '(Energy Storage, Actual Consumption)' --> 'energy_storage_ActualConsumption'
     df_generation.columns = [
         f"{column[0].lower().replace(' ', '_')}_{column[1].replace(' ', '')}" 
         for column in df_generation.columns
@@ -28,12 +50,11 @@ def fetch_generation_data(client, start, end, country_code):
     return df_generation
 
 
-
 def fetch_load_data(client, start, end, country_code):
-    # Make API call through the ENTSOE client
+    """Get load data for a given country and datetime range"""
+
     df_load = client.query_load(country_code, start=start, end=end)
 
-    # Format column name 'Actual Load' --> 'actual_load'
     df_load.columns = [col.lower().replace(' ', '_') for col in df_load.columns]
 
     return df_load
@@ -41,6 +62,9 @@ def fetch_load_data(client, start, end, country_code):
 
 
 if __name__ == "__main__":
+
+    # Get SQLAlchemy engine
+    engine = sqlalchemy_engine_setup()
 
     # Get client
     client = get_entsoe_client()
@@ -55,6 +79,3 @@ if __name__ == "__main__":
 
     # Get load data
     df_load = fetch_load_data(client, start, end, country_code)
-
-    print(df_generation.head())
-    print(df_load.head())

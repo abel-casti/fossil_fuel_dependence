@@ -1,2 +1,4 @@
-pandas          # Handling dfs
-entsoe-py       # API wrapper for ENTSO-E
+pandas==3.0.6           # Handling dfs
+entsoe-py==0.8.1        # API wrapper for ENTSO-E
+sqlalchemy==2.0.54      # For connection to POSTGRES db
+pg8000==1.31.5          # Driver for sqlalchemy connection
