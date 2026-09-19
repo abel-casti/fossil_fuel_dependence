@@ -23,5 +23,48 @@ services:
     depends_on:
       - postgres_db
 
+  pgadmin:
+    image: dpage/pgadmin4:9.18.0
+    ports:
+      - 5050:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: abel.casti@icloud.com
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: 'True'
+    configs:
+      - source: pgadmin-pgpass
+        target: /config/pgpass
+        uid: "5050"
+        gid: "5050"
+        mode: 0400
+      - source: pgadmin-servers
+        target: /pgadmin4/servers.json
+        mode: 0444
+
+
 volumes:
   fossil_dependence_db:
+
+
+configs:
+  pgadmin-servers:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Name": "fossil_dependence",
+            "Group": "Servers",
+            "Host": "postgres_db",
+            "Port": 5432,
+            "MaintenanceDB": "postgres",
+            "Username": "${POSTGRES_USER}",
+            "PassFile": "/config/pgpass"
+          }
+        }
+      }
+      
+  pgadmin-pgpass:
+    content: |
+      postgres_db:5432:*:${POSTGRES_USER}:${POSTGRES_PASSWORD}

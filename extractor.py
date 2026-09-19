@@ -30,7 +30,7 @@ def sqlalchemy_engine_setup():
 def postgres_schemas_setup(engine):
     """Create 'raw' and 'trfm' schemas in Postgres DB if they don't exist already"""
 
-    schemas = ["raw", "trfm"]
+    schemas = ["stg", "trfm"]
     with engine.begin() as connection:
         for schema in schemas:
             connection.execute(
