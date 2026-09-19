@@ -25,6 +25,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:9.18.0
+    profiles: [dev]
     ports:
       - 5050:80
     environment:

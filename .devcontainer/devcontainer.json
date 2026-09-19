@@ -2,6 +2,7 @@
 	"name": "Python 3 & Postgres",
 	"dockerComposeFile": "../compose.yaml",
 	"service": "extractor",
+	"runServices": ["postgres_db", "extractor", "pgadmin"],
 	"workspaceFolder": "/workspace",
 	"postCreateCommand": "pip3 install --user -r requirements.txt"
 }
