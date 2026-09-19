@@ -36,7 +36,7 @@ def postgres_schemas_setup(engine):
             connection.execute(
                 sqlalchemy.text(f"CREATE SCHEMA IF NOT EXISTS {schema};")
             )
-    
+
 
 def get_entsoe_client():
     """Initialize and return the ENTSO-E Pandas client."""
@@ -95,5 +95,5 @@ if __name__ == "__main__":
     df_load = fetch_load_data(client, start, end, country_code)
 
     # Load data into Postgres DB
-    df_generation.to_sql("generation_log", con=engine, schema="stg", if_exists="fail", index=True, index_label="timestamp")
-    df_load.to_sql("load_log", con=engine, schema="stg", if_exists="fail", index=True, index_label="timestamp")
+    df_generation.to_sql("generation_log", con=engine, schema="stg", if_exists="replace", index=True, index_label="timestamp")
+    df_load.to_sql("load_log", con=engine, schema="stg", if_exists="replace", index=True, index_label="timestamp")
