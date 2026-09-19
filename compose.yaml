@@ -1,0 +1,27 @@
+services:
+  postgres_db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - fossil_dependence_db:/var/lib/postgresql/data
+    
+  extractor:
+    image: "mcr.microsoft.com/devcontainers/python:3-3.14-trixie"
+    command: sleep infinity
+    environment:
+      ENTSOE_API_TOKEN: ${ENTSOE_API_TOKEN}
+      POSTGRES_HOST: postgres_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - .:/workspace:cached
+    depends_on:
+      - postgres_db
+
+volumes:
+  fossil_dependence_db:
