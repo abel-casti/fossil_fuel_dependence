@@ -27,6 +27,17 @@ def sqlalchemy_engine_setup():
     return sqlalchemy.create_engine(url)
 
 
+def postgres_schemas_setup(engine):
+    """Create 'raw' and 'trfm' schemas in Postgres DB if they don't exist already"""
+
+    schemas = ["raw", "trfm"]
+    with engine.begin() as connection:
+        for schema in schemas:
+            connection.execute(
+                sqlalchemy.text(f"CREATE SCHEMA IF NOT EXISTS {schema};")
+            )
+    
+
 def get_entsoe_client():
     """Initialize and return the ENTSO-E Pandas client."""
 
@@ -66,6 +77,9 @@ if __name__ == "__main__":
     # Get SQLAlchemy engine
     engine = sqlalchemy_engine_setup()
 
+    # Setup Postgres schemas
+    postgres_schemas_setup(engine)
+
     # Get client
     client = get_entsoe_client()
 
@@ -79,3 +93,7 @@ if __name__ == "__main__":
 
     # Get load data
     df_load = fetch_load_data(client, start, end, country_code)
+
+    # Load data into Postgres DB
+    df_generation.to_sql("generation_log", con=engine, schema="stg", if_exists="fail", index=True, index_label="timestamp")
+    df_load.to_sql("load_log", con=engine, schema="stg", if_exists="fail", index=True, index_label="timestamp")
