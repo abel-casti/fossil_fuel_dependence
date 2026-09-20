@@ -6,12 +6,21 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     volumes:
       - fossil_dependence_db:/var/lib/postgresql/data
     
   extractor:
     image: "mcr.microsoft.com/devcontainers/python:3-3.14-trixie"
     command: sleep infinity
+    depends_on:
+      postgres_db:
+        condition: service_healthy
     environment:
       ENTSOE_API_TOKEN: ${ENTSOE_API_TOKEN}
       POSTGRES_HOST: postgres_db
@@ -20,8 +29,54 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - .:/workspace:cached
+
+
+  pgadmin:
+    image: dpage/pgadmin4:9.18.0
+    profiles: [dev]
     depends_on:
-      - postgres_db
+      postgres_db:
+        condition: service_healthy
+    ports:
+      - 5050:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: abel.casti@icloud.com
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: 'True'
+    configs:
+      - source: pgadmin-pgpass
+        target: /config/pgpass
+        uid: "5050"
+        gid: "5050"
+        mode: 0400
+      - source: pgadmin-servers
+        target: /pgadmin4/servers.json
+        mode: 0444
+
 
 volumes:
   fossil_dependence_db:
+
+
+configs:
+  pgadmin-servers:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Name": "fossil_dependence",
+            "Group": "Servers",
+            "Host": "postgres_db",
+            "Port": 5432,
+            "MaintenanceDB": "postgres",
+            "Username": "${POSTGRES_USER}",
+            "PassFile": "/config/pgpass"
+          }
+        }
+      }
+      
+  pgadmin-pgpass:
+    content: |
+      postgres_db:5432:*:${POSTGRES_USER}:${POSTGRES_PASSWORD}
