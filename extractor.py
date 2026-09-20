@@ -48,23 +48,48 @@ def get_entsoe_client():
     return EntsoePandasClient(api_key=api_token)
 
 
-def fetch_generation_data(client, start, end, country_code):
-    """Get and flatten generation data for a given contry and datetime range"""
+def fetch_generation_data(client, start, end, country_codes):
+    """Get, flatten, and cocatenate generation data for the given date range and all given countries into a single df"""
 
-    df_generation = client.query_generation(country_code, start=start, end=end, psr_type=None)
+    all_dfs = []
+    for code in country_codes:
+        try:
+            df = client.query_generation(code, start=start, end=end, psr_type=None)
+            df.columns = [
+                f"{column[0].lower().replace(' ', '_')}_{column[1].replace(' ', '')}"
+                for column in df.columns
+            ]
+            df = df.reset_index().rename(columns={"index": "timestamp"})
+            df["country_code"] = code
+            all_dfs.append(df)
 
-    df_generation.columns = [
-        f"{column[0].lower().replace(' ', '_')}_{column[1].replace(' ', '')}" 
-        for column in df_generation.columns
-    ]
+        except Exception as e:
+            print(f"Failed to fetch generation data for country {code}: {e}")
+
+    try:
+        df_generation = pd.concat(all_dfs, ignore_index=True)
+    except Exception as e:
+        print(f"Failed to combine generation dfs: {e}")
 
     return df_generation
 
 
-def fetch_load_data(client, start, end, country_code):
-    """Get load data for a given country and datetime range"""
+def fetch_load_data(client, start, end, country_codes):
+    """Get and concatenate load data for the given date range and all given countries into a single df"""
 
-    df_load = client.query_load(country_code, start=start, end=end)
+    all_dfs = []
+    for code in country_codes:
+        try:
+            df = client.query_load(code, start=start, end=end)
+            df = df.reset_index().rename(columns={"index": "timestamp"})
+            df["country_code"] = code
+            all_dfs.append(df)
+        except Exception as e:
+            print(f"Failed to fetch load data for country {code}: {e}")
+    try:
+        df_load = pd.concat(all_dfs, ignore_index=True)
+    except Exception as e:
+        print(f"Failed to combine load dfs: {e}")
 
     df_load.columns = [col.lower().replace(' ', '_') for col in df_load.columns]
 
@@ -83,17 +108,20 @@ if __name__ == "__main__":
     # Get client
     client = get_entsoe_client()
 
-    # Get query parameters
-    start = pd.Timestamp('2026-09-15', tz='Europe/Madrid')
-    end = pd.Timestamp('2026-09-16', tz='Europe/Madrid')
-    country_code = "ES"
+    # Set query parameters
+    country_codes = ["ES", "FR", "NL", "DE_LU", "FI"]
+    end = pd.Timestamp.now(tz="Europe/Madrid").normalize()
+    start = end - pd.DateOffset(days=1)
 
     # Get generation data
-    df_generation = fetch_generation_data(client, start, end, country_code)
+    df_generation = fetch_generation_data(client, start, end, country_codes)
 
     # Get load data
-    df_load = fetch_load_data(client, start, end, country_code)
+    df_load = fetch_load_data(client, start, end, country_codes)
 
     # Load data into Postgres DB
-    df_generation.to_sql("generation_log", con=engine, schema="stg", if_exists="replace", index=True, index_label="timestamp")
-    df_load.to_sql("load_log", con=engine, schema="stg", if_exists="replace", index=True, index_label="timestamp")
+    df_generation.to_sql("generation_log", con=engine, schema="stg", if_exists="replace", index=False)
+    df_load.to_sql("load_log", con=engine, schema="stg", if_exists="replace", index=False)
+
+end_date = pd.Timestamp.now(tz="Europe/Madrid").normalize()
+start_date = end_date - pd.DateOffset(years=1)
