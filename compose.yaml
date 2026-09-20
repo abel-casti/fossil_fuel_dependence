@@ -12,8 +12,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
-    volumes:
-      - fossil_dependence_db:/var/lib/postgresql/data
     
   extractor:
     image: "mcr.microsoft.com/devcontainers/python:3-3.14-trixie"
@@ -54,10 +52,6 @@ services:
       - source: pgadmin-servers
         target: /pgadmin4/servers.json
         mode: 0444
-
-
-volumes:
-  fossil_dependence_db:
 
 
 configs:
