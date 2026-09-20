@@ -1,0 +1,20 @@
+name: 'fossil_dependence'
+version: '1.0.0'
+config-version: 2
+
+profile: 'fossil_dependence_dbt'
+
+model-paths: ["models"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+  - "logs"
+
+vars:
+  countries : ['Spain', 'France', 'Netherlands', 'Germany', 'Sweden']
+
+models:
+  fossil_dependence:
+    +materialized: table
