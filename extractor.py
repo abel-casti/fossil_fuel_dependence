@@ -122,6 +122,3 @@ if __name__ == "__main__":
     # Load data into Postgres DB
     df_generation.to_sql("generation_log", con=engine, schema="stg", if_exists="replace", index=False)
     df_load.to_sql("load_log", con=engine, schema="stg", if_exists="replace", index=False)
-
-end_date = pd.Timestamp.now(tz="Europe/Madrid").normalize()
-start_date = end_date - pd.DateOffset(years=1)
