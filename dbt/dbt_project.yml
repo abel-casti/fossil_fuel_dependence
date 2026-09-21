@@ -5,6 +5,7 @@ config-version: 2
 profile: 'fossil_dependence_dbt'
 
 model-paths: ["models"]
+macro-paths: ["macros"]
 
 target-path: "target"
 clean-targets:
@@ -12,9 +13,11 @@ clean-targets:
   - "dbt_packages"
   - "logs"
 
-vars:
-  countries : ['Spain', 'France', 'Netherlands', 'Germany', 'Sweden']
-
 models:
   fossil_dependence:
-    +materialized: table
+    stg:
+      +materialized: view
+      +schema: stg
+    marts:
+      +materialized: table
+      +schema: trfm
