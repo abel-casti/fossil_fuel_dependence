@@ -1,0 +1,23 @@
+name: 'fossil_dependence'
+version: '1.0.0'
+config-version: 2
+
+profile: 'fossil_dependence_dbt'
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+  - "logs"
+
+models:
+  fossil_dependence:
+    stg:
+      +materialized: view
+      +schema: stg
+    marts:
+      +materialized: table
+      +schema: trfm
