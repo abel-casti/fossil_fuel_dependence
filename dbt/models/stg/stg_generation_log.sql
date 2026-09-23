@@ -13,10 +13,10 @@ SELECT
     country_code,
     timestamp,
 
-    -- Normalize column names and replace NULL values with 0.0 (MW)
+    -- Normalize column names, use numeric type and replace NULL values with 0.0 (MW)
     {% for col in generation_columns %}
         {% set clean_name = col.name.split('_actual')[0].replace('-', '_').replace('/', '_or_') %}
-        COALESCE("{{ col.name }}", 0.0) AS {{ clean_name }}
+        COALESCE("{{ col.name }}", 0.0)::numeric AS {{ clean_name }}
         {% if not loop.last %},{% endif %}
     {% endfor %}
 FROM

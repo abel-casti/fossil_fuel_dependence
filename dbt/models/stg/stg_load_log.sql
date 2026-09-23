@@ -3,5 +3,5 @@
 SELECT
     country_code,
     timestamp,
-    actual_load AS load
+    actual_load::numeric AS load
 FROM {{ load_data }}

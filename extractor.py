@@ -1,6 +1,7 @@
 import os
 
 from entsoe import EntsoePandasClient
+from dbt.cli.main import dbtRunner
 import pandas as pd
 import sqlalchemy
 
@@ -56,7 +57,7 @@ def fetch_generation_data(client, start, end, country_codes):
         try:
             df = client.query_generation(code, start=start, end=end, psr_type=None)
             df.columns = [
-                f"{column[0].lower().replace(' ', '_')}_{column[1].replace(' ', '')}"
+                f"{column[0].lower().replace(' ', '_')}_{column[1].lower().replace(' ', '_')}"
                 for column in df.columns
             ]
             df = df.reset_index().rename(columns={"index": "timestamp"})
@@ -66,11 +67,10 @@ def fetch_generation_data(client, start, end, country_codes):
         except Exception as e:
             print(f"Failed to fetch generation data for country {code}: {e}")
 
-    try:
-        df_generation = pd.concat(all_dfs, ignore_index=True)
-    except Exception as e:
-        print(f"Failed to combine generation dfs: {e}")
+    if not all_dfs:
+        raise RuntimeError(f"No load data fetched for any country from {start} to {end}")
 
+    df_generation = pd.concat(all_dfs, ignore_index=True)
     return df_generation
 
 
@@ -86,13 +86,12 @@ def fetch_load_data(client, start, end, country_codes):
             all_dfs.append(df)
         except Exception as e:
             print(f"Failed to fetch load data for country {code}: {e}")
-    try:
-        df_load = pd.concat(all_dfs, ignore_index=True)
-    except Exception as e:
-        print(f"Failed to combine load dfs: {e}")
 
+    if not all_dfs:
+        raise RuntimeError(f"No load data fetched for any country from {start} to {end}")
+
+    df_load = pd.concat(all_dfs, ignore_index=True)
     df_load.columns = [col.lower().replace(' ', '_') for col in df_load.columns]
-
     return df_load
 
 
@@ -111,7 +110,7 @@ if __name__ == "__main__":
     # Set query parameters
     country_codes = ["ES", "FR", "NL", "DE_LU", "FI"]
     end = pd.Timestamp.now(tz="Europe/Madrid").normalize()
-    start = end - pd.DateOffset(days=1)
+    start = end - pd.DateOffset(days=60)
 
     # Get generation data
     df_generation = fetch_generation_data(client, start, end, country_codes)
@@ -120,5 +119,9 @@ if __name__ == "__main__":
     df_load = fetch_load_data(client, start, end, country_codes)
 
     # Load data into Postgres DB
-    df_generation.to_sql("generation_log", con=engine, schema="stg", if_exists="replace", index=False)
-    df_load.to_sql("load_log", con=engine, schema="stg", if_exists="replace", index=False)
+    df_generation.to_sql("generation_log", con=engine, schema="stg", if_exists="delete_rows", index=False)
+    df_load.to_sql("load_log", con=engine, schema="stg", if_exists="delete_rows", index=False)
+
+    # Run dbt
+    dbt = dbtRunner()
+    dbt.invoke(["run", "--project-dir", "/workspace/dbt", "--profiles-dir", "/workspace/dbt"])
