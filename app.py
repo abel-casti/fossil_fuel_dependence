@@ -52,8 +52,11 @@ def get_entsoe_client():
 def fetch_generation_data(client, start, end, country_codes):
     """Get, flatten, and cocatenate generation data for the given date range and all given countries into a single df"""
 
+    print(f"\nFetching data from {start} to {end}.\n")
+
     all_dfs = []
     for code in country_codes:
+        print(f"Fetching '{code}' generation data...")
         try:
             df = client.query_generation(code, start=start, end=end, psr_type=None)
             df.columns = [
@@ -79,6 +82,7 @@ def fetch_load_data(client, start, end, country_codes):
 
     all_dfs = []
     for code in country_codes:
+        print(f"Fetching '{code}' load data...")
         try:
             df = client.query_load(code, start=start, end=end)
             df = df.reset_index().rename(columns={"index": "timestamp"})

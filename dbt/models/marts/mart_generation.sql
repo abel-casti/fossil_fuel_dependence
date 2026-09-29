@@ -10,7 +10,7 @@ WITH cte AS (
         s.generation_value,
         s.source
     FROM 
-        stg_generation_log g
+        {{ stg_generation_log }} g
     CROSS JOIN LATERAL (
         VALUES
             (g.biomass, 'biomass'),
