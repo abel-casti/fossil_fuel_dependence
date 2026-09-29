@@ -3,11 +3,15 @@
     'hydro_water_reservoir', 'marine', 'other_renewable',
     'solar', 'wind_offshore', 'wind_onshore'
 ] %}
+
 {% set fossil_sources = [
     'fossil_brown_coal_or_lignite', 'fossil_coal_derived_gas',
     'fossil_gas', 'fossil_hard_coal', 'fossil_oil',
     'fossil_oil_shale', 'fossil_peat'
 ] %}
+
+{% set nuclear_sources = ['nuclear'] %}
+
 {% set ambiguous_sources = [
     'waste', 'other', 'energy_storage', 
     'hydro_pumped_storage'
@@ -34,6 +38,17 @@ FROM (
         SELECT '{{ src }}' AS source{% if not loop.last %} UNION ALL {% endif %}
     {% endfor %}
 ) AS fossil_sources
+
+UNION ALL
+
+SELECT 
+    source, 
+    'nuclear' AS category 
+FROM (
+    {% for src in nuclear_sources %}
+        SELECT '{{ src }}' AS source{% if not loop.last %} UNION ALL {% endif %}
+    {% endfor %}
+) AS nuclear_sub
 
 UNION ALL
 

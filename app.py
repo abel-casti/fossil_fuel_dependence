@@ -71,7 +71,7 @@ def fetch_generation_data(client, start, end, country_codes):
             print(f"Failed to fetch generation data for country {code}: {e}")
 
     if not all_dfs:
-        raise RuntimeError(f"No load data fetched for any country from {start} to {end}")
+        raise RuntimeError(f"No load data fetched for any country on given period")
 
     df_generation = pd.concat(all_dfs, ignore_index=True)
     return df_generation
@@ -92,7 +92,7 @@ def fetch_load_data(client, start, end, country_codes):
             print(f"Failed to fetch load data for country {code}: {e}")
 
     if not all_dfs:
-        raise RuntimeError(f"No load data fetched for any country from {start} to {end}")
+        raise RuntimeError(f"No load data fetched for any country on given period")
 
     df_load = pd.concat(all_dfs, ignore_index=True)
     df_load.columns = [col.lower().replace(' ', '_') for col in df_load.columns]
@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
     # Set query parameters
     country_codes = ["ES", "FR", "NL", "DE_LU", "FI"]
-    end = pd.Timestamp.now(tz="Europe/Madrid").normalize()
+    end = (pd.Timestamp.now(tz="Europe/Madrid") - pd.Timedelta(days=1)).normalize()
     start = end - pd.DateOffset(days=60)
 
     # Get generation data
