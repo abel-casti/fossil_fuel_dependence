@@ -37,15 +37,12 @@ WITH cte AS (
     ) AS s(generation_value, source)
 )
 
--- Sum generation values by country, date and source
+-- Add date column for relation with dim_calendar
 SELECT
     country_code,
     timestamp::date AS date,
+    timestamp,
     source,
-    ROUND(SUM(generation_value), 2) AS generation_value
+    generation_value
 FROM
     cte
-GROUP BY
-    country_code,
-    timestamp::date,
-    source
