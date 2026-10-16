@@ -28,9 +28,4 @@ models:
 
 seeds:
   fossil_dependence:
-    energy_sources:
-      +schema: marts
-      +alias: dim_energy_sources
-      +column_types:
-        source: varchar(50)
-        category: varchar(10)
+    +schema: reference
