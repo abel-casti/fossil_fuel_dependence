@@ -1,12 +1,12 @@
-{% set stg_generation = ref('stg_generation_log')%}
+{% set reference = ref('fact_load_coverage')%}
 
--- Since generation and load tables have data for the same period, we get first and last date from one of those
+-- Get first and last date from the reference table
 WITH bounds AS (
     SELECT 
         MIN(timestamp)::date AS start_date,
         MAX(timestamp)::date AS end_date
     FROM 
-        {{ stg_generation }}
+        {{ reference }}
 ),
 date_spine AS (
     SELECT 
@@ -17,6 +17,10 @@ date_spine AS (
         )::date AS date_day
 )
 SELECT 
-    date_day
+    date_day,
+    extract(year from date_day)::int            as year,
+    extract(month from date_day)::int           as month_number,
+    to_char(date_day, 'Mon')                    as month_name,
+    to_char(date_day, 'YYYY-MM')                as year_month
 FROM 
     date_spine

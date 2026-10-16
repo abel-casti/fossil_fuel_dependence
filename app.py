@@ -31,7 +31,7 @@ def sqlalchemy_engine_setup():
 def postgres_schemas_setup(engine):
     """Create 'raw' and 'trfm' schemas in Postgres DB if they don't exist already"""
 
-    schemas = ["stg", "trfm"]
+    schemas = ["staging", "intermediate", "marts"]
     with engine.begin() as connection:
         for schema in schemas:
             connection.execute(
@@ -123,9 +123,9 @@ if __name__ == "__main__":
     df_load = fetch_load_data(client, start, end, country_codes)
 
     # Load data into Postgres DB
-    df_generation.to_sql("generation_log", con=engine, schema="stg", if_exists="delete_rows", index=False)
-    df_load.to_sql("load_log", con=engine, schema="stg", if_exists="delete_rows", index=False)
+    df_generation.to_sql("generation_log", con=engine, schema="staging", if_exists="delete_rows", index=False)
+    df_load.to_sql("load_log", con=engine, schema="staging", if_exists="delete_rows", index=False)
 
     # Run dbt
     dbt = dbtRunner()
-    dbt.invoke(["run", "--project-dir", "/workspace/dbt", "--profiles-dir", "/workspace/dbt"])
+    dbt.invoke(["build", "--project-dir", "/workspace/dbt", "--profiles-dir", "/workspace/dbt"])
