@@ -1,4 +1,4 @@
-{% set country_codes = ref('ref_country_codes') %}
+{% set country_codes = ref('country_codes') %}
 {% set generation_data = ref('int_generation') %}
 
 -- Get generation by source and country

@@ -1,5 +1,5 @@
-{% set energy_sources = ref('ref_energy_sources') %}
-{% set country_codes = ref('ref_country_codes') %}
+{% set energy_sources = ref('energy_sources') %}
+{% set country_codes = ref('country_codes') %}
 {% set load_data = ref('int_load') %}
 {% set generation_data = ref('int_generation') %}
 
