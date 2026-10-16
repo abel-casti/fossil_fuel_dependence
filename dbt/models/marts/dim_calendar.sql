@@ -3,8 +3,8 @@
 -- Get first and last date from the reference table
 WITH bounds AS (
     SELECT 
-        MIN(timestamp)::date AS start_date,
-        MAX(timestamp)::date AS end_date
+        MIN(date) AS start_date,
+        MAX(date) AS end_date
     FROM 
         {{ reference }}
 ),
