@@ -112,7 +112,7 @@ if __name__ == "__main__":
     client = get_entsoe_client()
 
     # Set query parameters
-    country_codes = ["ES", "FR", "NL", "DE_LU", "FI"]
+    country_codes = ["ES", "FR", "NL", "DE_LU", "PL"]
     end = (pd.Timestamp.now(tz="Europe/Madrid") - pd.Timedelta(days=1)).normalize()
     start = end - pd.DateOffset(days=60)
 
