@@ -41,8 +41,13 @@ WITH cte AS (
 SELECT
     country_code,
     timestamp::date AS date,
-    timestamp,
+    DATE_TRUNC('hour', timestamp) AS ts_utc,
     source,
-    generation_value
+    SUM(generation_value) AS generation_MW
 FROM
     cte
+GROUP BY
+    country_code,
+    timestamp::date,
+    source,
+    DATE_TRUNC('hour', timestamp)
