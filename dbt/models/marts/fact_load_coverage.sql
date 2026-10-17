@@ -1,5 +1,4 @@
 {% set energy_sources = ref('energy_sources') %}
-{% set country_codes = ref('country_codes') %}
 {% set load_data = ref('int_load') %}
 {% set generation_data = ref('int_generation') %}
 
@@ -24,7 +23,7 @@ WITH generation_aggregated AS (
         g.ts_utc
 )
 SELECT
-    cc.country_name,
+    g.country_code,
     g.date,
     g.ts_utc,
     g.renewable_generation_MW,
@@ -34,9 +33,6 @@ SELECT
     l.load_MW
 FROM
     generation_aggregated g
-INNER JOIN
-    {{ country_codes }} cc
-    ON g.country_code = cc.country_code
 INNER JOIN
     {{ load_data }} l
     ON g.country_code = l.country_code 
