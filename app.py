@@ -29,14 +29,13 @@ def sqlalchemy_engine_setup():
 
 
 def postgres_schemas_setup(engine):
-    """Create 'raw' and 'trfm' schemas in Postgres DB if they don't exist already"""
+    """Create 'staging' schema in Postgres DB if it  doesn't already exist"""
 
-    schemas = ["staging", "intermediate", "marts", "reference"]
+    schema = "staging"
     with engine.begin() as connection:
-        for schema in schemas:
-            connection.execute(
-                sqlalchemy.text(f"CREATE SCHEMA IF NOT EXISTS {schema};")
-            )
+        connection.execute(
+            sqlalchemy.text(f"CREATE SCHEMA IF NOT EXISTS {schema};")
+        )
 
 
 def get_entsoe_client():
@@ -114,7 +113,7 @@ if __name__ == "__main__":
     # Set query parameters
     country_codes = ["ES", "FR", "NL", "DE_LU", "PL"]
     end = (pd.Timestamp.now(tz="Europe/Madrid") - pd.Timedelta(days=1)).normalize()
-    start = end - pd.DateOffset(days=60)
+    start = end - pd.DateOffset(days=2)
 
     # Get generation data
     df_generation = fetch_generation_data(client, start, end, country_codes)
