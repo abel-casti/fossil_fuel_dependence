@@ -1,26 +1,28 @@
-{% set reference = ref('fact_load_coverage')%}
+{% set reference = ref('fact_load') %}
 
--- Get first and last date from the reference table
+-- Get first and last hour from the reference table
 WITH bounds AS (
     SELECT 
-        MIN(date) AS start_date,
-        MAX(date) AS end_date
+        date_trunc('hour', MIN(ts_utc)) AS start_ts,
+        date_trunc('hour', MAX(ts_utc)) AS end_ts
     FROM 
         {{ reference }}
 ),
-date_spine AS (
+hour_spine AS (
     SELECT 
         generate_series(
-            (SELECT start_date FROM bounds),
-            (SELECT end_date FROM bounds),
-            interval '1 day'
-        )::date AS date_day
+            (SELECT start_ts FROM bounds),
+            (SELECT end_ts FROM bounds),
+            interval '1 hour'
+        ) AS ts_utc
 )
 SELECT 
-    date_day,
-    extract(year from date_day)::int            as year,
-    extract(month from date_day)::int           as month_number,
-    to_char(date_day, 'Mon')                    as month_name,
-    to_char(date_day, 'YYYY-MM')                as year_month
+    ts_utc,
+    ts_utc::date                            AS date_day,
+    to_char(ts_utc, 'HH24:00')              AS hour_label,
+    extract(year from ts_utc)::int          AS year,
+    extract(month from ts_utc)::int         AS month_number,
+    to_char(ts_utc, 'Mon')                  AS month_name,
+    to_char(ts_utc, 'YYYY-MM')              AS year_month
 FROM 
-    date_spine
+    hour_spine
