@@ -2,10 +2,10 @@
 
 -- Get generation by source and country
 SELECT
-    g.country_code,
-    g.date,
-    g.ts_utc,
-    g.source,
-    g.generation_MW
+    country_code,
+    date,
+    ts_utc,
+    REPLACE(REPLACE(source, 'fossil_', ''), '_', ' ') AS source,
+    generation_MW
 FROM
-    {{ generation_data }} g
+    {{ generation_data }}
