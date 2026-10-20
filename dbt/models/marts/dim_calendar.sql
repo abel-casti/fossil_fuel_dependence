@@ -24,8 +24,10 @@ SELECT
     extract(month from ts_utc)::int         AS month_number,
     to_char(ts_utc, 'Mon')                  AS month_name,
     to_char(ts_utc, 'YYYY-MM')              AS year_month,
+    to_char(ts_utc, 'YYYY-Mon')             AS year_month_name,
+    ((extract(year from ts_utc) * 100) + extract(month from ts_utc))::int AS year_month_num,
     extract(day from ts_utc)::int           AS day_of_month,
     extract(isodow from ts_utc)::int        AS day_of_week_number,
-    to_char(ts_utc, 'FMDy')                AS day_of_week_name
+    to_char(ts_utc, 'FMDy')                 AS day_of_week_name
 FROM 
     hour_spine
