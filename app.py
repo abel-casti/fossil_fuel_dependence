@@ -25,7 +25,7 @@ def sqlalchemy_engine_setup():
         database=postgres_db
     )
 
-    return sqlalchemy.create_engine(url)
+    return sqlalchemy.create_engine(url, echo=True)
 
 
 def postgres_schemas_setup(engine):
@@ -48,6 +48,21 @@ def get_entsoe_client():
     return EntsoePandasClient(api_key=api_token)
 
 
+def flatten_generation_columns(df):
+    """Flatten columns for multi-index dataframes"""
+
+    new_cols = []
+    for col in df.columns:
+        if isinstance(col, tuple):
+            new_cols.append("_".join(label for label in col))
+        else:
+            new_cols.append(col)
+
+    df.columns = new_cols
+
+    return df
+
+
 def fetch_generation_data(client, start, end, country_codes):
     """Get, flatten, and cocatenate generation data for the given date range and all given countries into a single df"""
 
@@ -58,11 +73,9 @@ def fetch_generation_data(client, start, end, country_codes):
         print(f"Fetching '{code}' generation data...")
         try:
             df = client.query_generation(code, start=start, end=end, psr_type=None)
-            df.columns = [
-                f"{column[0].lower().replace(' ', '_')}_{column[1].lower().replace(' ', '_')}"
-                for column in df.columns
-            ]
-            df = df.reset_index().rename(columns={"index": "timestamp"})
+            df = flatten_generation_columns(df)
+            df.index.name = "timestamp"
+            df = df.reset_index()
             df["country_code"] = code
             all_dfs.append(df)
 
@@ -84,7 +97,8 @@ def fetch_load_data(client, start, end, country_codes):
         print(f"Fetching '{code}' load data...")
         try:
             df = client.query_load(code, start=start, end=end)
-            df = df.reset_index().rename(columns={"index": "timestamp"})
+            df.index.name = "timestamp"
+            df = df.reset_index()
             df["country_code"] = code
             all_dfs.append(df)
         except Exception as e:
@@ -122,8 +136,11 @@ if __name__ == "__main__":
     df_load = fetch_load_data(client, start, end, country_codes)
 
     # Load data into Postgres DB
-    df_generation.to_sql("generation_log", con=engine, schema="staging", if_exists="delete_rows", index=False)
-    df_load.to_sql("load_log", con=engine, schema="staging", if_exists="delete_rows", index=False)
+    with engine.begin() as conn:
+        conn.execute(sqlalchemy.text("DROP TABLE IF EXISTS staging.generation_log CASCADE"))
+        conn.execute(sqlalchemy.text("DROP TABLE IF EXISTS staging.load_log CASCADE"))
+        df_generation.to_sql("generation_log", con=conn, schema="staging", if_exists="delete_rows", index=False)
+        df_load.to_sql("load_log", con=conn, schema="staging", if_exists="delete_rows", index=False)
 
     # Run dbt
     dbt = dbtRunner()

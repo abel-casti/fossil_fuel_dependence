@@ -4,7 +4,7 @@
 -- Filter out non-generation columns for name normalization
 {% set generation_columns = [] %}
 {% for col in columns %}
-    {% if col.name not in ['country_code', 'timestamp'] and 'consumption' not in col.name %}
+    {% if col.name not in ['country_code', 'timestamp'] and 'Consumption' not in col.name %}
         {% do generation_columns.append(col) %}
     {% endif %}
 {% endfor %}
@@ -15,7 +15,8 @@ SELECT
 
     -- Normalize column names, use numeric type and replace NULL values with 0.0 (MW)
     {% for col in generation_columns %}
-        {% set clean_name = col.name.split('_actual')[0].replace('-', '_').replace('/', '_or_') %}
+        {% set clean_name = col.name.replace(' ', '_').replace('-', '_').replace('/', '_or_').lower() %}
+        {% set clean_name = clean_name.split('_actual')[0] %}
         COALESCE("{{ col.name }}", 0.0)::numeric AS {{ clean_name }}
         {% if not loop.last %},{% endif %}
     {% endfor %}
