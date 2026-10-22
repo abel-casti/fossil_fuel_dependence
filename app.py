@@ -29,14 +29,13 @@ def sqlalchemy_engine_setup():
 
 
 def postgres_schemas_setup(engine):
-    """Create 'raw' and 'trfm' schemas in Postgres DB if they don't exist already"""
+    """Create 'staging' schema in Postgres DB if it  doesn't already exist"""
 
-    schemas = ["stg", "trfm"]
+    schema = "staging"
     with engine.begin() as connection:
-        for schema in schemas:
-            connection.execute(
-                sqlalchemy.text(f"CREATE SCHEMA IF NOT EXISTS {schema};")
-            )
+        connection.execute(
+            sqlalchemy.text(f"CREATE SCHEMA IF NOT EXISTS {schema};")
+        )
 
 
 def get_entsoe_client():
@@ -52,8 +51,11 @@ def get_entsoe_client():
 def fetch_generation_data(client, start, end, country_codes):
     """Get, flatten, and cocatenate generation data for the given date range and all given countries into a single df"""
 
+    print(f"\nFetching data from {start} to {end}.\n")
+
     all_dfs = []
     for code in country_codes:
+        print(f"Fetching '{code}' generation data...")
         try:
             df = client.query_generation(code, start=start, end=end, psr_type=None)
             df.columns = [
@@ -68,7 +70,7 @@ def fetch_generation_data(client, start, end, country_codes):
             print(f"Failed to fetch generation data for country {code}: {e}")
 
     if not all_dfs:
-        raise RuntimeError(f"No load data fetched for any country from {start} to {end}")
+        raise RuntimeError(f"No load data fetched for any country on given period")
 
     df_generation = pd.concat(all_dfs, ignore_index=True)
     return df_generation
@@ -79,6 +81,7 @@ def fetch_load_data(client, start, end, country_codes):
 
     all_dfs = []
     for code in country_codes:
+        print(f"Fetching '{code}' load data...")
         try:
             df = client.query_load(code, start=start, end=end)
             df = df.reset_index().rename(columns={"index": "timestamp"})
@@ -88,7 +91,7 @@ def fetch_load_data(client, start, end, country_codes):
             print(f"Failed to fetch load data for country {code}: {e}")
 
     if not all_dfs:
-        raise RuntimeError(f"No load data fetched for any country from {start} to {end}")
+        raise RuntimeError(f"No load data fetched for any country on given period")
 
     df_load = pd.concat(all_dfs, ignore_index=True)
     df_load.columns = [col.lower().replace(' ', '_') for col in df_load.columns]
@@ -108,9 +111,9 @@ if __name__ == "__main__":
     client = get_entsoe_client()
 
     # Set query parameters
-    country_codes = ["ES", "FR", "NL", "DE_LU", "FI"]
-    end = pd.Timestamp.now(tz="Europe/Madrid").normalize()
-    start = end - pd.DateOffset(days=60)
+    country_codes = ["ES", "FR", "NL", "DE_LU", "PL"]
+    end = (pd.Timestamp.now(tz="Europe/Madrid") - pd.Timedelta(days=1)).normalize()
+    start = end - pd.DateOffset(days=2)
 
     # Get generation data
     df_generation = fetch_generation_data(client, start, end, country_codes)
@@ -119,9 +122,9 @@ if __name__ == "__main__":
     df_load = fetch_load_data(client, start, end, country_codes)
 
     # Load data into Postgres DB
-    df_generation.to_sql("generation_log", con=engine, schema="stg", if_exists="delete_rows", index=False)
-    df_load.to_sql("load_log", con=engine, schema="stg", if_exists="delete_rows", index=False)
+    df_generation.to_sql("generation_log", con=engine, schema="staging", if_exists="delete_rows", index=False)
+    df_load.to_sql("load_log", con=engine, schema="staging", if_exists="delete_rows", index=False)
 
     # Run dbt
     dbt = dbtRunner()
-    dbt.invoke(["run", "--project-dir", "/workspace/dbt", "--profiles-dir", "/workspace/dbt"])
+    dbt.invoke(["build", "--project-dir", "/workspace/dbt", "--profiles-dir", "/workspace/dbt"])

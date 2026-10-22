@@ -1,0 +1,22 @@
+source,category
+biomass,renewable
+geothermal,renewable
+hydro run of river and pondage,renewable
+hydro water reservoir,renewable
+marine,renewable
+other renewable,renewable
+solar,renewable
+wind offshore,renewable
+wind onshore,renewable
+brown coal or lignite,fossil
+coal derived gas,fossil
+gas,fossil
+hard coal,fossil
+oil,fossil
+oil shale,fossil
+peat,fossil
+nuclear,nuclear
+waste,ambiguous
+other,ambiguous
+energy storage,ambiguous
+hydro pumped storage,ambiguous

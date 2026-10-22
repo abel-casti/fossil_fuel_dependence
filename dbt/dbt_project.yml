@@ -6,6 +6,7 @@ profile: 'fossil_dependence_dbt'
 
 model-paths: ["models"]
 macro-paths: ["macros"]
+seed-paths: ["seeds"]
 
 target-path: "target"
 clean-targets:
@@ -15,9 +16,20 @@ clean-targets:
 
 models:
   fossil_dependence:
-    stg:
+    staging:
       +materialized: view
-      +schema: stg
+      +schema: staging
+    intermediate:
+      +materialized: view
+      +schema: intermediate
     marts:
       +materialized: table
-      +schema: trfm
+      +schema: marts
+
+seeds:
+  fossil_dependence:
+    +schema: reference
+    country_codes:
+      +alias: ref_country_codes
+    energy_sources:
+      +alias: ref_energy_sources

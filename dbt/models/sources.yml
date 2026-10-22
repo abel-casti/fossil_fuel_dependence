@@ -4,7 +4,7 @@ sources:
   - name: staging_tables
     description: Tables injected into postgres by python extractor.
     database: fossil_dependence
-    schema: stg
+    schema: staging
     tables:
     - name: generation_log
       description: Raw generation by type data. 15-min granularity.
