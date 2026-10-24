@@ -6,6 +6,17 @@ import pandas as pd
 import sqlalchemy
 
 
+
+def get_entsoe_client():
+    """Initialize and return the ENTSO-E Pandas client."""
+
+    api_token = os.getenv("ENTSOE_API_TOKEN")
+    if not api_token:
+        raise ValueError("ENTSOE_API_TOKEN not found in .env file")
+
+    return EntsoePandasClient(api_key=api_token)
+
+
 def sqlalchemy_engine_setup():
     """Create and return a SQLAlchemy engine connected to the Postgres DB."""
 
@@ -28,36 +39,38 @@ def sqlalchemy_engine_setup():
     return sqlalchemy.create_engine(url, echo=True)
 
 
-def postgres_schemas_setup(engine):
+def postgres_staging_setup(engine):
     """Drop all existing tables and create 'staging' schema in Postgres DB if it  doesn't already exist"""
 
     schema = "staging"
     with engine.begin() as connection:
-        connection.execute(sqlalchemy.text("DROP TABLE IF EXISTS staging.generation_log CASCADE"))
-        connection.execute(sqlalchemy.text("DROP TABLE IF EXISTS staging.load_log CASCADE"))
-        connection.execute(sqlalchemy.text(f"CREATE SCHEMA IF NOT EXISTS {schema};"))
+        connection.execute(sqlalchemy.text(f"DROP SCHEMA IF EXISTS {schema} CASCADE"))
+        connection.execute(sqlalchemy.text(f"CREATE SCHEMA {schema};"))
         connection.execute(sqlalchemy.text(f"""
-            CREATE TABLE IF NOT EXISTS {schema}.generation_log (
+            CREATE TABLE {schema}.generation_log (
                 timestamp TIMESTAMP,
-                country_code VARCHAR(10)
+                country_code VARCHAR(5)
             )
         """))
 
 
 def insert_into_staging(engine, df, table_name):
+    """Insert a dataframe into the given table in the 'staging' schema. If column does not exist in the predefined table, it will be added automatically"""
     
     with engine.begin() as connection:
+
+        existing = {row[0] for row in connection.execute(sqlalchemy.text(f"""
+            SELECT column_name FROM information_schema.columns
+            WHERE table_schema = 'staging' AND table_name = '{table_name}'
+        """))}
+
+        for col in df.columns:
+            if col not in existing:
+                connection.execute(sqlalchemy.text(f"""
+                    ALTER TABLE staging.{table_name} ADD COLUMN "{col}" DOUBLE PRECISION
+                """))
+
         df.to_sql(table_name, con=connection, schema="staging", if_exists="append", index=False)
-
-
-def get_entsoe_client():
-    """Initialize and return the ENTSO-E Pandas client."""
-
-    api_token = os.getenv("ENTSOE_API_TOKEN")
-    if not api_token:
-        raise ValueError("ENTSOE_API_TOKEN not found in .env file")
-
-    return EntsoePandasClient(api_key=api_token)
 
 
 def flatten_generation_columns(df):
@@ -67,7 +80,7 @@ def flatten_generation_columns(df):
 
     for pos, col in enumerate(df.columns):
         if isinstance(col, tuple):
-            if col[1] == 'Actual Aggregated':
+            if col[1] == "Actual Aggregated":
                 positions.append(pos)
                 names.append(col[0])
         else:
@@ -132,7 +145,7 @@ if __name__ == "__main__":
     engine = sqlalchemy_engine_setup()
 
     # Setup Postgres schemas
-    postgres_schemas_setup(engine)
+    postgres_staging_setup(engine)
 
     # Get client
     client = get_entsoe_client()
