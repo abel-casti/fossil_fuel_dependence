@@ -52,6 +52,12 @@ def postgres_staging_setup(engine):
                 country_code VARCHAR(5)
             )
         """))
+        connection.execute(sqlalchemy.text(f"""
+            CREATE TABLE {schema}.load_log (
+                timestamp TIMESTAMP,
+                country_code VARCHAR(5)
+            )
+        """))
 
 
 def insert_into_staging(engine, df, table_name):
@@ -115,10 +121,9 @@ def fetch_generation_data(engine, client, start, end, country_codes):
     return None
 
 
-def fetch_load_data(client, start, end, country_codes):
+def fetch_load_data(engine, client, start, end, country_codes):
     """Get and concatenate load data for the given date range and all given countries into a single df"""
 
-    all_dfs = []
     for code in country_codes:
         print(f"Fetching '{code}' load data...")
         try:
@@ -126,16 +131,13 @@ def fetch_load_data(client, start, end, country_codes):
             df.index.name = "timestamp"
             df = df.reset_index()
             df["country_code"] = code
-            all_dfs.append(df)
+
+            insert_into_staging(engine, df, "load_log")
+
         except Exception as e:
             print(f"Failed to fetch load data for country {code}: {e}")
 
-    if not all_dfs:
-        raise RuntimeError(f"No load data fetched for any country on given period")
-
-    df_load = pd.concat(all_dfs, ignore_index=True)
-    df_load.columns = [col.lower().replace(' ', '_') for col in df_load.columns]
-    return df_load
+    return None
 
 
 
@@ -159,7 +161,7 @@ if __name__ == "__main__":
     fetch_generation_data(engine, client, start, end, country_codes)
 
     # Get load data
-    #df_load = fetch_load_data(client, start, end, country_codes)
+    df_load = fetch_load_data(engine, client, start, end, country_codes)
 
     # Run dbt
     #dbt = dbtRunner()
