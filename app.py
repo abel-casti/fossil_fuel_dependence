@@ -36,7 +36,7 @@ def sqlalchemy_engine_setup():
         database=postgres_db
     )
 
-    return sqlalchemy.create_engine(url, echo=True)
+    return sqlalchemy.create_engine(url, echo=False)
 
 
 def postgres_staging_setup(engine):
@@ -60,6 +60,29 @@ def postgres_staging_setup(engine):
         """))
 
 
+def normalize_generation_columns(df):
+    """Handle duplicate column names and flatten columns for multi-index dataframes"""
+
+    positions, names = [], []
+
+    for pos, col in enumerate(df.columns):
+
+        if not isinstance(col, tuple):
+            if col.strip().lower() not in names:
+                positions.append(pos)
+                names.append(col.strip().lower())
+
+        elif isinstance(col, tuple):
+            if col[1].strip().lower() == "actual aggregated" and col[0].strip().lower() not in names:
+                positions.append(pos)
+                names.append(col[0].strip().lower())
+
+    df = df.iloc[:, positions]
+    df.columns = names
+
+    return df
+
+
 def insert_into_staging(engine, df, table_name):
     """Insert a dataframe into the given table in the 'staging' schema. If column does not exist in the predefined table, it will be added automatically"""
     
@@ -79,28 +102,8 @@ def insert_into_staging(engine, df, table_name):
         df.to_sql(table_name, con=connection, schema="staging", if_exists="append", index=False)
 
 
-def flatten_generation_columns(df):
-    """Flatten columns for multi-index dataframes"""
-
-    positions, names = [], []
-
-    for pos, col in enumerate(df.columns):
-        if isinstance(col, tuple):
-            if col[1] == "Actual Aggregated":
-                positions.append(pos)
-                names.append(col[0])
-        else:
-            positions.append(pos)
-            names.append(col)
-
-    df = df.iloc[:, positions]
-    df.columns = names
-
-    return df
-
-
 def fetch_generation_data(engine, client, start, end, country_codes):
-    """Get, flatten, and cocatenate generation data for the given date range and all given countries into a single df"""
+    """Get, flatten, and concatenate generation data for the given date range and all given countries into a single df"""
 
     print(f"\nFetching data from {start} to {end}.\n")
 
@@ -114,7 +117,6 @@ def fetch_generation_data(engine, client, start, end, country_codes):
             df["country_code"] = code
 
             insert_into_staging(engine, df, "generation_log")
-
         except Exception as e:
             print(f"Failed to fetch generation data for country {code}: {e}")
 
@@ -154,8 +156,8 @@ if __name__ == "__main__":
 
     # Set query parameters
     country_codes = ["ES", "FR", "NL", "DE_LU", "PL"]
-    end = (pd.Timestamp.now(tz="Europe/Madrid") - pd.Timedelta(days=1826)).normalize()
-    start = end - pd.DateOffset(days=30)
+    end = (pd.Timestamp.now(tz="Europe/Madrid") - pd.Timedelta(days=1)).normalize()
+    start = end - pd.DateOffset(years=5)
 
     # Get generation data
     fetch_generation_data(engine, client, start, end, country_codes)
