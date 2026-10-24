@@ -164,5 +164,5 @@ if __name__ == "__main__":
     df_load = fetch_load_data(engine, client, start, end, country_codes)
 
     # Run dbt
-    #dbt = dbtRunner()
-    #dbt.invoke(["build", "--project-dir", "/workspace/dbt", "--profiles-dir", "/workspace/dbt"])
+    dbt = dbtRunner()
+    dbt.invoke(["build", "--project-dir", "/workspace/dbt", "--profiles-dir", "/workspace/dbt"])
