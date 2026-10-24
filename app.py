@@ -29,13 +29,19 @@ def sqlalchemy_engine_setup():
 
 
 def postgres_schemas_setup(engine):
-    """Create 'staging' schema in Postgres DB if it  doesn't already exist"""
+    """Drop all existing tables and create 'staging' schema in Postgres DB if it  doesn't already exist"""
 
     schema = "staging"
     with engine.begin() as connection:
-        connection.execute(
-            sqlalchemy.text(f"CREATE SCHEMA IF NOT EXISTS {schema};")
-        )
+        connection.execute(sqlalchemy.text("DROP TABLE IF EXISTS staging.generation_log CASCADE"))
+        connection.execute(sqlalchemy.text("DROP TABLE IF EXISTS staging.load_log CASCADE"))
+        connection.execute(sqlalchemy.text(f"CREATE SCHEMA IF NOT EXISTS {schema};"))
+
+
+def insert_into_staging(engine, df, table_name):
+    
+    with engine.begin() as connection:
+        df.to_sql(table_name, con=connection, schema="staging", if_exists="append", index=False)
 
 
 def get_entsoe_client():
@@ -51,24 +57,28 @@ def get_entsoe_client():
 def flatten_generation_columns(df):
     """Flatten columns for multi-index dataframes"""
 
-    new_cols = []
-    for col in df.columns:
-        if isinstance(col, tuple):
-            new_cols.append("_".join(label for label in col))
-        else:
-            new_cols.append(col)
+    positions, names = [], []
 
-    df.columns = new_cols
+    for pos, col in enumerate(df.columns):
+        if isinstance(col, tuple):
+            if col[1] == 'Actual Aggregated':
+                positions.append(pos)
+                names.append(col[0])
+        else:
+            positions.append(pos)
+            names.append(col)
+
+    df = df.iloc[:, positions]
+    df.columns = names
 
     return df
 
 
-def fetch_generation_data(client, start, end, country_codes):
+def fetch_generation_data(engine, client, start, end, country_codes):
     """Get, flatten, and cocatenate generation data for the given date range and all given countries into a single df"""
 
     print(f"\nFetching data from {start} to {end}.\n")
 
-    all_dfs = []
     for code in country_codes:
         print(f"Fetching '{code}' generation data...")
         try:
@@ -77,16 +87,13 @@ def fetch_generation_data(client, start, end, country_codes):
             df.index.name = "timestamp"
             df = df.reset_index()
             df["country_code"] = code
-            all_dfs.append(df)
+
+            insert_into_staging(engine, df, "generation_log")
 
         except Exception as e:
             print(f"Failed to fetch generation data for country {code}: {e}")
 
-    if not all_dfs:
-        raise RuntimeError(f"No load data fetched for any country on given period")
-
-    df_generation = pd.concat(all_dfs, ignore_index=True)
-    return df_generation
+    return None
 
 
 def fetch_load_data(client, start, end, country_codes):
@@ -126,22 +133,15 @@ if __name__ == "__main__":
 
     # Set query parameters
     country_codes = ["ES", "FR", "NL", "DE_LU", "PL"]
-    end = (pd.Timestamp.now(tz="Europe/Madrid") - pd.Timedelta(days=1)).normalize()
-    start = end - pd.DateOffset(days=2)
+    end = (pd.Timestamp.now(tz="Europe/Madrid") - pd.Timedelta(days=1826)).normalize()
+    start = end - pd.DateOffset(days=30)
 
     # Get generation data
-    df_generation = fetch_generation_data(client, start, end, country_codes)
+    fetch_generation_data(engine, client, start, end, country_codes)
 
     # Get load data
-    df_load = fetch_load_data(client, start, end, country_codes)
-
-    # Load data into Postgres DB
-    with engine.begin() as conn:
-        conn.execute(sqlalchemy.text("DROP TABLE IF EXISTS staging.generation_log CASCADE"))
-        conn.execute(sqlalchemy.text("DROP TABLE IF EXISTS staging.load_log CASCADE"))
-        df_generation.to_sql("generation_log", con=conn, schema="staging", if_exists="delete_rows", index=False)
-        df_load.to_sql("load_log", con=conn, schema="staging", if_exists="delete_rows", index=False)
+    #df_load = fetch_load_data(client, start, end, country_codes)
 
     # Run dbt
-    dbt = dbtRunner()
-    dbt.invoke(["build", "--project-dir", "/workspace/dbt", "--profiles-dir", "/workspace/dbt"])
+    #dbt = dbtRunner()
+    #dbt.invoke(["build", "--project-dir", "/workspace/dbt", "--profiles-dir", "/workspace/dbt"])
