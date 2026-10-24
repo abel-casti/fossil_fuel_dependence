@@ -36,6 +36,12 @@ def postgres_schemas_setup(engine):
         connection.execute(sqlalchemy.text("DROP TABLE IF EXISTS staging.generation_log CASCADE"))
         connection.execute(sqlalchemy.text("DROP TABLE IF EXISTS staging.load_log CASCADE"))
         connection.execute(sqlalchemy.text(f"CREATE SCHEMA IF NOT EXISTS {schema};"))
+        connection.execute(sqlalchemy.text(f"""
+            CREATE TABLE IF NOT EXISTS {schema}.generation_log (
+                timestamp TIMESTAMP,
+                country_code VARCHAR(10)
+            )
+        """))
 
 
 def insert_into_staging(engine, df, table_name):
