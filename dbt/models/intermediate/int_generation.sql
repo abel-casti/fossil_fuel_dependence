@@ -1,6 +1,6 @@
 {% set stg_generation_log = ref("stg_generation_log") %}
-
-
+{% set columns = adapter.get_columns_in_relation(stg_generation_log) %}
+{% set source_columns = columns | rejectattr("name", "in", ["country_code", "timestamp"]) | list %}
 
 -- Unpivot table
 WITH cte AS (
@@ -9,31 +9,14 @@ WITH cte AS (
         g."timestamp",
         s.generation_value,
         s.source
-    FROM 
+    FROM
         {{ stg_generation_log }} g
     CROSS JOIN LATERAL (
         VALUES
-            (g.biomass, 'biomass'),
-            (g.fossil_brown_coal_or_lignite, 'fossil_brown_coal_or_lignite'),
-            (g.fossil_coal_derived_gas, 'fossil_coal_derived_gas'),
-            (g.fossil_gas, 'fossil_gas'),
-            (g.fossil_hard_coal, 'fossil_hard_coal'),
-            (g.fossil_oil, 'fossil_oil'),
-            (g.fossil_oil_shale, 'fossil_oil_shale'),
-            (g.fossil_peat, 'fossil_peat'),
-            (g.geothermal, 'geothermal'),
-            (g.hydro_pumped_storage, 'hydro_pumped_storage'),
-            (g.hydro_run_of_river_and_pondage, 'hydro_run_of_river_and_pondage'),
-            (g.hydro_water_reservoir, 'hydro_water_reservoir'),
-            (g.marine, 'marine'),
-            (g.nuclear, 'nuclear'),
-            (g.other_renewable, 'other_renewable'),
-            (g.solar, 'solar'),
-            (g.waste, 'waste'),
-            (g.wind_offshore, 'wind_offshore'),
-            (g.wind_onshore, 'wind_onshore'),
-            (g.other, 'other'),
-            (g.energy_storage, 'energy_storage')
+            {% for col in source_columns %}
+                (g.{{ col.name }}, '{{ col.name }}')
+                {% if not loop.last %},{% endif %}
+            {% endfor %}
     ) AS s(generation_value, source)
 )
 
@@ -43,7 +26,7 @@ SELECT
     timestamp::date AS date,
     DATE_TRUNC('hour', timestamp) AS ts_utc,
     source,
-    SUM(generation_value) AS generation_MW
+    AVG(generation_value) AS generation_MW
 FROM
     cte
 GROUP BY
