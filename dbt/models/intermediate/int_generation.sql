@@ -1,5 +1,6 @@
 {% set stg_generation_log = ref("stg_generation_log") %}
 {% set columns = adapter.get_columns_in_relation(stg_generation_log) %}
+{% set source_columns = columns | rejectattr("name", "in", ["country_code", "timestamp"]) | list %}
 
 -- Unpivot table
 WITH cte AS (
@@ -12,11 +13,9 @@ WITH cte AS (
         {{ stg_generation_log }} g
     CROSS JOIN LATERAL (
         VALUES
-            {% for col in columns %}
-                {% if col.name not in ['country_code', 'timestamp'] %}
-                    (g.{{ col.name }}, '{{ col.name }}')
-                    {% if not loop.last %},{% endif %}
-                {% endif %}
+            {% for col in source_columns %}
+                (g.{{ col.name }}, '{{ col.name }}')
+                {% if not loop.last %},{% endif %}
             {% endfor %}
     ) AS s(generation_value, source)
 )
@@ -27,7 +26,7 @@ SELECT
     timestamp::date AS date,
     DATE_TRUNC('hour', timestamp) AS ts_utc,
     source,
-    SUM(generation_value) AS generation_MW
+    AVG(generation_value) AS generation_MW
 FROM
     cte
 GROUP BY

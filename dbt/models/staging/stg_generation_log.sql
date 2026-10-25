@@ -9,7 +9,7 @@ SELECT
     -- Normalize column names, use numeric type and replace NULL values with 0.0 (MW)
     {% for col in columns %}
         {% if col.name not in ['country_code', 'timestamp'] %}
-            {% set clean_name = col.name.replace(' ', '_').replace('-', '_').replace('/', '_or_').lower() %}
+            {% set clean_name = col.name.replace(' ', '_').replace('-', '_').replace('/', '_or_') %}
             COALESCE("{{ col.name }}", 0.0) AS {{ clean_name }}
             {% if not loop.last %},{% endif %}
         {% endif %}

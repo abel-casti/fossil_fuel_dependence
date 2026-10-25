@@ -40,12 +40,12 @@ def sqlalchemy_engine_setup():
 
 
 def postgres_staging_setup(engine):
-    """Drop all existing tables and create 'staging' schema in Postgres DB if it  doesn't already exist"""
+    """Recreate staging schema and tables in Postgres DB"""
 
     schema = "staging"
     with engine.begin() as connection:
         connection.execute(sqlalchemy.text(f"DROP SCHEMA IF EXISTS {schema} CASCADE"))
-        connection.execute(sqlalchemy.text(f"CREATE SCHEMA {schema};"))
+        connection.execute(sqlalchemy.text(f"CREATE SCHEMA {schema}"))
         connection.execute(sqlalchemy.text(f"""
             CREATE TABLE {schema}.generation_log (
                 timestamp TIMESTAMP,
@@ -61,26 +61,25 @@ def postgres_staging_setup(engine):
 
 
 def normalize_generation_columns(df):
-    """Handle duplicate column names and flatten columns for multi-index dataframes"""
+    """Flatten columns and merge duplicates. Keeps the first non-null value per row"""
 
-    positions, names = [], []
+    merged = {}
 
     for pos, col in enumerate(df.columns):
+        if isinstance(col, tuple):
+            if col[1].strip().lower() != "actual aggregated":
+                continue
+            name = col[0].strip().lower()
+        else:
+            name = col.strip().lower()
 
-        if not isinstance(col, tuple):
-            if col.strip().lower() not in names:
-                positions.append(pos)
-                names.append(col.strip().lower())
+        series = df.iloc[:, pos]
+        if name in merged:
+            merged[name] = merged[name].combine_first(series)
+        else:
+            merged[name] = series
 
-        elif isinstance(col, tuple):
-            if col[1].strip().lower() == "actual aggregated" and col[0].strip().lower() not in names:
-                positions.append(pos)
-                names.append(col[0].strip().lower())
-
-    df = df.iloc[:, positions]
-    df.columns = names
-
-    return df
+    return pd.DataFrame(merged, index=df.index)
 
 
 def insert_into_staging(engine, df, table_name):
@@ -103,7 +102,7 @@ def insert_into_staging(engine, df, table_name):
 
 
 def fetch_generation_data(engine, client, start, end, country_codes):
-    """Get, flatten, and concatenate generation data for the given date range and all given countries into a single df"""
+    """Get, flatten, and insert generation data for the given date range and all given countries into Postgres DB"""
 
     print(f"\nFetching data from {start} to {end}.\n")
 
@@ -114,17 +113,15 @@ def fetch_generation_data(engine, client, start, end, country_codes):
             df = normalize_generation_columns(df)
             df.index.name = "timestamp"
             df = df.reset_index()
+            df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df["country_code"] = code
-
             insert_into_staging(engine, df, "generation_log")
         except Exception as e:
             print(f"Failed to fetch generation data for country {code}: {e}")
 
-    return None
-
 
 def fetch_load_data(engine, client, start, end, country_codes):
-    """Get and concatenate load data for the given date range and all given countries into a single df"""
+    """Get and insert load data for the given date range and all given countries into Postgres DB"""
 
     for code in country_codes:
         print(f"Fetching '{code}' load data...")
@@ -132,38 +129,28 @@ def fetch_load_data(engine, client, start, end, country_codes):
             df = client.query_load(code, start=start, end=end)
             df.index.name = "timestamp"
             df = df.reset_index()
+            df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df["country_code"] = code
-
             insert_into_staging(engine, df, "load_log")
-
         except Exception as e:
             print(f"Failed to fetch load data for country {code}: {e}")
-
-    return None
 
 
 
 if __name__ == "__main__":
 
-    # Get SQLAlchemy engine
+    # Setup
     engine = sqlalchemy_engine_setup()
-
-    # Setup Postgres schemas
     postgres_staging_setup(engine)
-
-    # Get client
     client = get_entsoe_client()
 
-    # Set query parameters
+    # Get data from ENTSO-E
     country_codes = ["ES", "FR", "NL", "DE_LU", "PL"]
-    end = (pd.Timestamp.now(tz="Europe/Madrid") - pd.Timedelta(days=1)).normalize()
-    start = end - pd.DateOffset(years=5)
+    start = pd.Timestamp("2019-01-01", tz="Europe/Madrid")
+    end = (pd.Timestamp.now(tz="Europe/Madrid").normalize() - pd.Timedelta(seconds=1))
 
-    # Get generation data
     fetch_generation_data(engine, client, start, end, country_codes)
-
-    # Get load data
-    df_load = fetch_load_data(engine, client, start, end, country_codes)
+    fetch_load_data(engine, client, start, end, country_codes)
 
     # Run dbt
     dbt = dbtRunner()
