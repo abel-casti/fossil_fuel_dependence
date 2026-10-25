@@ -10,7 +10,7 @@ SELECT
     {% for col in columns %}
         {% if col.name not in ['country_code', 'timestamp'] %}
             {% set clean_name = col.name.replace(' ', '_').replace('-', '_').replace('/', '_or_') %}
-            COALESCE("{{ col.name }}", 0.0) AS {{ clean_name }}
+            "{{ col.name }}" AS {{ clean_name }}
             {% if not loop.last %},{% endif %}
         {% endif %}
     {% endfor %}

@@ -4,5 +4,5 @@
 SELECT
     country_code,
     timestamp,
-    COALESCE("Actual Load", 0.0) AS load
+    NULLIF("Actual Load", 0) AS load
 FROM {{ load_data }}
