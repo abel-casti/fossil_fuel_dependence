@@ -111,7 +111,7 @@ def fetch_generation_data(engine, client, start, end, country_codes):
         print(f"Fetching '{code}' generation data...")
         try:
             df = client.query_generation(code, start=start, end=end, psr_type=None)
-            df = flatten_generation_columns(df)
+            df = normalize_generation_columns(df)
             df.index.name = "timestamp"
             df = df.reset_index()
             df["country_code"] = code
