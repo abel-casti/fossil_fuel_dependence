@@ -145,7 +145,7 @@ if __name__ == "__main__":
     client = get_entsoe_client()
 
     # Get data from ENTSO-E
-    country_codes = ["ES", "FR", "NL", "DE_LU", "PL"]
+    country_codes = ["ES", "FR", "BE", "DE_LU", "PL"]
     start = pd.Timestamp("2019-01-01", tz="Europe/Madrid")
     end = (pd.Timestamp.now(tz="Europe/Madrid").normalize() - pd.Timedelta(seconds=1))
 
