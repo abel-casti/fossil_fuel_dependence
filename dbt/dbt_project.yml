@@ -16,6 +16,9 @@ clean-targets:
 
 models:
   fossil_dependence:
+    +persist_docs:
+      relation: true
+      columns: true
     staging:
       +materialized: view
       +schema: staging
