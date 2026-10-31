@@ -2,27 +2,27 @@ version: 2
 
 models:
   - name: int_load
-    description: One row per date, timestamp, and country code. Now load is shown by hour in MWh
+    description: One row per date, timestamp, and country code. Now load is shown by hour in MWh.
     columns:
       - name: country_code
-        description: ISO country code for the location of the generation data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'
+        description: ISO country code for the location of the generation data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'.
       - name: date
-        description: Date of the load record
+        description: Date of the load record.
       - name: ts_utc
         description: Timestamp of the load record. The granularity is exclusively hourly.
       - name: load_mw
-        description: Measured load in MWh
+        description: Measured load in MWh.
 
   - name: int_generation
-    description: Generation table with sources unpivoted (from columns to rows). Multiple rows per date, timestamp and country_code (one per source). Now generation is shown by hour in MWh
+    description: Generation table with sources unpivoted (from columns to rows). Multiple rows per date, timestamp and country_code (one per source). Now generation is shown by hour in MWh.
     columns:
       - name: country_code
-        description: ISO country code for the location of the generation data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'
+        description: ISO country code for the location of the generation data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'.
       - name: date
-        description: Date of generation record
+        description: Date of generation record.
       - name: ts_utc
         description: Timestamp of the generation record. The granularity is exclusively hourly.
       - name: source
-        description: Generation source
+        description: Generation source.
       - name: generation_mw
-        description: Measured generation in MWh
+        description: Measured generation in MWh.

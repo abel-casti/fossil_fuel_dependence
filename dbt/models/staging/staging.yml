@@ -2,61 +2,61 @@ version: 2
 
 models:
   - name: stg_load_log
-    description: One row per timestamp and country_code. A country load is never 0 so if one row comes with value 0, it will be NULL
+    description: One row per timestamp and country_code. A country load is never 0 so if one row comes with value 0, it will be NULL.
     columns:
       - name: country_code
-        description: ISO country code for the location of the generation data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'
+        description: ISO country code for the location of the generation data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'.
       - name: timestamp
         description: Timestamp of the load record. Granularity can be either 15-min or 1h.
       - name: load
-        description: Measured load in MW
+        description: Measured load in MW.
 
   - name: stg_generation_log
     description: One row per timestamp, country_code.
     columns:
       - name: country_code
-        description: ISO country code for the location of the generation data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'
+        description: ISO country code for the location of the generation data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'.
       - name: timestamp
         description: Timestamp of the generation record. Granularity can be either 15-min or 1h.
       - name: biomass
-        description: "Measured energy generated from biomass in MW"
+        description: Measured energy generated from biomass in MW.
       - name: fossil_brown_coal_or_lignite
-        description: "Measured energy generated from brown coal or lignite in MW"
+        description: Measured energy generated from brown coal or lignite in MW.
       - name: fossil_coal_derived_gas
-        description: "Measured energy generated from coal-derived gas in MW"
+        description: Measured energy generated from coal-derived gas in MW.
       - name: fossil_gas
-        description: "Measured energy generated from natural gas in MW"
+        description: Measured energy generated from natural gas in MW.
       - name: fossil_hard_coal
-        description: "Measured energy generated from hard coal in MW"
+        description: Measured energy generated from hard coal in MW.
       - name: fossil_oil
-        description: "Measured energy generated from oil in MW"
+        description: Measured energy generated from oil in MW.
       - name: fossil_oil_shale
-        description: "Measured energy generated from oil shale in MW"
+        description: Measured energy generated from oil shale in MW.
       - name: fossil_peat
-        description: "Measured energy generated from peat in MW"
+        description: Measured energy generated from peat in MW.
       - name: geothermal
-        description: "Measured energy generated from geothermal in MW"
+        description: Measured energy generated from geothermal in MW.
       - name: hydro_run_of_river_and_pondage
-        description: "Measured energy generated from run-of-river and pondage hydro in MW"
+        description: Measured energy generated from run-of-river and pondage hydro in MW.
       - name: hydro_water_reservoir
-        description: "Measured energy generated from water reservoir hydro in MW"
+        description: Measured energy generated from water reservoir hydro in MW.
       - name: marine
-        description: "Measured energy generated from marine in MW"
+        description: Measured energy generated from marine in MW.
       - name: nuclear
-        description: "Measured energy generated from nuclear in MW"
+        description: Measured energy generated from nuclear in MW.
       - name: other_renewable
-        description: "Measured energy generated from other renewable in MW"
+        description: Measured energy generated from other renewable in MW.
       - name: solar
-        description: "Measured energy generated from solar in MW"
+        description: Measured energy generated from solar in MW.
       - name: waste
-        description: "Measured energy generated from waste in MW"
+        description: Measured energy generated from waste in MW.
       - name: wind_offshore
-        description: "Measured energy generated from offshore wind in MW"
+        description: Measured energy generated from offshore wind in MW.
       - name: wind_onshore
-        description: "Measured energy generated from onshore wind in MW"
+        description: Measured energy generated from onshore wind in MW.
       - name: other
-        description: "Measured energy generated from other in MW"
+        description: Measured energy generated from other in MW.
       - name: hydro_pumped_storage
-        description: "Measured energy generated from hydro pumped storage in MW"
+        description: Measured energy generated from hydro pumped storage in MW.
       - name: energy_storage
-        description: "Measured energy generated from energy storage in MW"
+        description: Measured energy generated from energy storage in MW.
