@@ -8,12 +8,60 @@ sources:
     tables:
     - name: generation_log
       description: Raw generation by type data. 15-min granularity.
+      columns:
+        - name: timestamp
+          description: Timestamp of the raw record.
+        - name: country_code
+          description: ISO country code for the location of the generation data.
+        - name: biomass
+          description: Raw energy generated from biomass in MW.
+        - name: "fossil brown coal/lignite"
+          description: Raw energy generated from brown coal or lignite in MW.
+        - name: "fossil coal-derived gas"
+          description: Raw energy generated from coal-derived gas in MW.
+        - name: "fossil gas"
+          description: Raw energy generated from natural gas in MW.
+        - name: "fossil hard coal"
+          description: Raw energy generated from hard coal in MW.
+        - name: "fossil oil"
+          description: Raw energy generated from oil in MW.
+        - name: "fossil oil shale"
+          description: Raw energy generated from oil shale in MW.
+        - name: "fossil peat"
+          description: Raw energy generated from peat in MW.
+        - name: geothermal
+          description: Raw energy generated from geothermal in MW.
+        - name: "hydro run-of-river and pondage"
+          description: Raw energy generated from run-of-river and pondage hydro in MW.
+        - name: "hydro water reservoir"
+          description: Raw energy generated from water reservoir hydro in MW.
+        - name: marine
+          description: Raw energy generated from marine in MW.
+        - name: nuclear
+          description: Raw energy generated from nuclear in MW.
+        - name: "other renewable"
+          description: Raw energy generated from other renewable in MW.
+        - name: solar
+          description: Raw energy generated from solar in MW.
+        - name: waste
+          description: Raw energy generated from waste in MW.
+        - name: "wind offshore"
+          description: Raw energy generated from offshore wind in MW.
+        - name: "wind onshore"
+          description: Raw energy generated from onshore wind in MW.
+        - name: other
+          description: Raw energy generated from other in MW.
+        - name: "hydro pumped storage"
+          description: Raw energy generated from hydro pumped storage in MW.
+        - name: "energy storage"
+          description: Raw energy generated from energy storage in MW.
+
     - name: load_log
       description: Raw load data. 15-min granularity.
       columns:
         - name: timestamp
           description: Timestamp in Europe/Madrid timezone. One value every 15 minutes.
-        - name: actual_load
+        - name: "Actual Load"
           description: Load measured in Megawatts (MW) for a 15 minutes period.
         - name: country_code
           description: Short code for country.
