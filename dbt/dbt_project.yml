@@ -7,6 +7,7 @@ profile: 'fossil_dependence_dbt'
 model-paths: ["models"]
 macro-paths: ["macros"]
 seed-paths: ["seeds"]
+test-paths: ["tests"]
 
 target-path: "target"
 clean-targets:

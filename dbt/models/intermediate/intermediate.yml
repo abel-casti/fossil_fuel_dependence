@@ -26,3 +26,5 @@ models:
         description: Generation source.
       - name: generation_mw
         description: Measured generation in MWh.
+        data_tests:
+          - non_negative

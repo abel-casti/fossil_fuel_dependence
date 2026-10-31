@@ -6,18 +6,28 @@ models:
     columns:
       - name: country_code
         description: ISO country code for the location of the generation data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'.
+        data_tests:
+          - not_null
       - name: timestamp
         description: Timestamp of the load record. Granularity can be either 15-min or 1h.
+        data_tests:
+          - not_null
       - name: load
         description: Measured load in MW.
+        data_tests:
+          - non_negative
 
   - name: stg_generation_log
     description: One row per timestamp, country_code.
     columns:
       - name: country_code
         description: ISO country code for the location of the generation data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'.
+        data_tests:
+          - not_null
       - name: timestamp
         description: Timestamp of the generation record. Granularity can be either 15-min or 1h.
+        data_tests:
+          - not_null
       - name: biomass
         description: Measured energy generated from biomass in MW.
       - name: fossil_brown_coal_or_lignite
