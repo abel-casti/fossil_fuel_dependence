@@ -14,6 +14,6 @@ sources:
         - name: timestamp
           description: Timestamp in Europe/Madrid timezone. One value every 15 minutes.
         - name: actual_load
-          description: Load measured in Megawatts (MW) for a 15 minutes period
+          description: Load measured in Megawatts (MW) for a 15 minutes period.
         - name: country_code
-          description: Short code for country
+          description: Short code for country.
