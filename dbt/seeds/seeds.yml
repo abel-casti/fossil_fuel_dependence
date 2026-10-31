@@ -1,0 +1,18 @@
+version: 2
+
+seeds:
+  - name: country_codes
+    description: A list of the used ISO country codes and full names.
+    columns:
+      - name: country_code
+        description: ISO country code.
+      - name: country_name
+        description: Full country name.
+
+  - name: energy_sources
+    description: A classification of the used enery sources.
+    columns:
+      - name: source
+        description: Energy source.
+      - name: category
+        description: The category each energy source belongs to, either 'Renewable', 'Fossil', 'Nuclear' or 'Ambiguous'.
