@@ -125,3 +125,25 @@ A few decisions worth calling out:
 - **Orchestrated end to end by one script.** `app.py` sets up the database, extracts, loads, and then invokes `dbt build` programmatically, so a single command takes you from empty database to fresh marts.
 
 ---
+
+## Project structure
+
+```
+.
+├── app.py                 # Extract & load from ENTSO-E, then triggers dbt
+├── compose.yaml           # Postgres, extractor/dbt runner, optional pgAdmin
+├── requirements.txt
+├── fossil_dependence.pbix # Power BI report
+├── dbt/
+│   ├── models/
+│   │   ├── staging/       # Light cleanup of raw tables
+│   │   ├── intermediate/  # Business logic, source classification
+│   │   └── marts/         # fact_generation_by_source, fact_load, dim_calendar
+│   ├── macros/ seeds/ tests/
+│   ├── dbt_project.yml
+│   └── profiles.yml
+├── docs/                  # dbt documentation
+└── images/                # Diagrams and dashboard screenshots
+```
+
+---
