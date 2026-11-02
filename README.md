@@ -166,11 +166,8 @@ A few decisions worth calling out:
 2. **Run the pipeline with Docker:**
 
    ```bash
-   # TODO: replace with the final command once the multi-stage Dockerfile is ready
    docker compose up
    ```
-
-   <!-- TODO: describe what this does: start Postgres, load 2019 → yesterday for all five zones, run `dbt build`. Mention the first run takes a while because of the API volume. -->
 
 3. **(Optional) Explore the database with pgAdmin:**
 
