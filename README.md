@@ -147,3 +147,37 @@ A few decisions worth calling out:
 ```
 
 ---
+
+## Running it locally
+
+**Prerequisites:** Docker, and a [ENTSO-E API token](https://transparency.entsoe.eu/) (register on ENTSO-E and reqeust or ask me for one). Power BI Desktop is only needed to open the report.
+
+1. **Create a `.env` file** in the project root:
+
+   ```env
+   ENTSOE_API_TOKEN=your_token
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=postgrespassword
+   POSTGRES_HOST=postgres_db
+   POSTGRES_DB=fossil_dependence
+   PGADMIN_PASSWORD=supersecreta
+   ```
+
+2. **Run the pipeline with Docker:**
+
+   ```bash
+   # TODO: replace with the final command once the multi-stage Dockerfile is ready
+   docker compose up
+   ```
+
+   <!-- TODO: describe what this does: start Postgres, load 2019 → yesterday for all five zones, run `dbt build`. Mention the first run takes a while because of the API volume. -->
+
+3. **(Optional) Explore the database with pgAdmin:**
+
+   ```bash
+   docker compose --profile dev up -d
+   ```
+
+4. **Open `fossil_dependence.pbix`** in Power BI Desktop and point it at `localhost:5432`.
+
+---
