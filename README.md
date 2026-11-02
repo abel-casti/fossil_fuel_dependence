@@ -83,3 +83,33 @@ Data quality is enforced with dbt tests that run as part of `dbt build` (e.g. `n
 
 ---
 
+## Dashboard
+
+Interactive filtering by **country**, **date range**, and **time granularity** (yearly, monthly, daily, hourly).
+
+**Left side: self-sufficiency**
+Three visuals showing how much of each country's electricity load non-fossil sources could cover: a stacked bar by source, a country × period coverage matrix (colour-coded, with the 100% line as reference), and a coverage time series.
+
+**Right side: generation & fuel mix**
+Total generation by source category over time, KPI cards for nuclear / renewable / fossil / ambiguous generation, and treemaps that break down the non-fossil and fossil mixes by individual source (wind onshore, solar, gas, hard coal, …).
+
+<details>
+<summary><b>See the other granularities</b></summary>
+
+<br>
+
+**Monthly**
+
+![Monthly view](images/dashboard_monthly.png)
+
+**Daily**
+
+![Daily view](images/dashboard_daily.png)
+
+**Hourly**
+
+![Hourly view](images/dashboard_hourly.png)
+
+</details>
+
+---
