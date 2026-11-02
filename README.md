@@ -32,3 +32,22 @@ ENTSO-E reports some zones at 15-minute resolution. These readings are aggregate
 Because the report goes all the way down to hourly resolution, you can also see *when* a country leans on fossil fuels: solar-driven midday peaks, overnight dips, and weekday vs. weekend patterns.
 
 ---
+
+## Architecture
+
+![Pipeline diagram](images/diagram.svg)
+
+I chose an **ELT** approach to decouple ingestion from modeling: Python only extracts and loads raw data, and all business logic lives in SQL where it can be tested and documented. Everything except Power BI runs in Docker containers for a reproducible environment.
+
+| Layer | Tool | Role |
+|---|---|---|
+| Source | [ENTSO-E Transparency Platform](https://transparency.entsoe.eu/) | Generation per source type and total load, per bidding zone |
+| Extract & Load | Python, pandas, `entsoe-py`, SQLAlchemy | Pull from the API, clean up the response shape, load raw into Postgres |
+| Storage | PostgreSQL 16 | Warehouse (`staging` schema for raw data, dbt-managed models on top) |
+| Transform | dbt | Staging → intermediate → marts, with tests and docs |
+| Serve | Power BI | Interactive report on top of the marts |
+| Infra | Docker Compose, VS Code Dev Containers | Postgres, extractor/dbt runner and an optional pgAdmin |
+
+**About the source:** ENTSO-E is the European Network of Transmission System Operators for Electricity. It brings together 40 operators from 36 countries to promote the internal electricity market and the secure operation of the European grid.
+
+---
