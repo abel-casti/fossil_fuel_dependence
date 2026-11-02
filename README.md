@@ -113,3 +113,15 @@ Total generation by source category over time, KPI cards for nuclear / renewable
 </details>
 
 ---
+
+## Engineering notes
+
+A few decisions worth calling out:
+
+- **Idempotent runs.** Each run recreates the `staging` schema from scratch, so the pipeline can be re-executed at any time and always ends in a consistent state.
+- **Messy API responses handled explicitly.** ENTSO-E returns generation as a multi-level column frame with both *Actual Aggregated* and *Actual Consumption* series, and some source types appear more than once. A normalization step keeps only aggregated generation, flattens the columns and merges duplicates (first non-null value wins).
+- **Schema that adapts to the data.** Generation source types vary by country, so the loader adds any missing source column to the staging table on the fly instead of hard-coding a fixed list.
+- **Fault isolation per country.** A failed API call for one country is logged and skipped rather than aborting the whole run.
+- **Orchestrated end to end by one script.** `app.py` sets up the database, extracts, loads, and then invokes `dbt build` programmatically, so a single command takes you from empty database to fresh marts.
+
+---
