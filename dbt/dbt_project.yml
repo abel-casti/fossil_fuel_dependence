@@ -7,6 +7,7 @@ profile: 'fossil_dependence_dbt'
 model-paths: ["models"]
 macro-paths: ["macros"]
 seed-paths: ["seeds"]
+test-paths: ["tests"]
 
 target-path: "target"
 clean-targets:
@@ -16,6 +17,9 @@ clean-targets:
 
 models:
   fossil_dependence:
+    +persist_docs:
+      relation: true
+      columns: true
     staging:
       +materialized: view
       +schema: staging

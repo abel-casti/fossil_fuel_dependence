@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: dim_calendar
+    description: Hourly calendar spine generated from the minimum and maximum timestamps of the reference data.
+    columns:
+      - name: ts_utc
+        description: Primary key. Hourly timestamp acting as the calendar spine.
+      - name: date_day
+        description: Date component of the timestamp.
+      - name: hour_label
+        description: Formatted hour label of the record (e.g., '14:00').
+      - name: year
+        description: Calendar year extracted from the timestamp.
+      - name: month_number
+        description: Month number (1 through 12).
+      - name: month_name
+        description: Abbreviated name of the month (e.g., 'Jan').
+      - name: year_month
+        description: Year and month string in 'YYYY-MM' format.
+      - name: year_month_name
+        description: Year and abbreviated month name in 'YYYY-Mon' format.
+      - name: day_of_week_number
+        description: ISO day of the week number (1 for Monday through 7 for Sunday).
+      - name: day_of_week_name
+        description: Abbreviated name of the day of the week (e.g., 'Mon').
+
+  - name: fact_generation_by_source
+    description: Generation data structured by source, date, and timestamp per country.
+    columns:
+      - name: country_code
+        description: ISO country code for the location of the generation data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'.
+      - name: date
+        description: Date component of the record.
+      - name: ts_utc
+        description: Timestamp of the generation record.
+      - name: source
+        description: Cleaned name of the energy source (with 'fossil_' prefixes removed and underscores replaced with spaces).
+      - name: generation_mw
+        description: Measured energy generated from the specified source in MWh.
+
+  - name: fact_load
+    description: Load data structured by date and tiemstamp per country.
+    columns:
+      - name: country_code
+        description: ISO country code for the location of the load data. Either 'ES', 'FR', 'BE', 'DE_DU' (Germany and Luxemburg) or 'PL'.
+      - name: date
+        description: Date component of the record.
+      - name: ts_utc
+        description: Timestamp of the load record.
+      - name: load_mw
+        description: Measured load in MWh.
