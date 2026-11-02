@@ -43,7 +43,7 @@ I chose an **ELT** approach to decouple ingestion from modeling: Python only ext
 |---|---|---|
 | Source | [ENTSO-E Transparency Platform](https://transparency.entsoe.eu/) | Generation per source type and total load, per bidding zone |
 | Extract & Load | Python, pandas, `entsoe-py`, SQLAlchemy | Pull from the API, clean up the response shape, load raw into Postgres |
-| Storage | PostgreSQL 16 | Warehouse (`staging` schema for raw data, dbt-managed models on top) |
+| Storage | PostgreSQL | Warehouse (`staging` schema for raw data, dbt-managed models on top) |
 | Transform | dbt | Staging → intermediate → marts, with tests and docs |
 | Serve | Power BI | Interactive report on top of the marts |
 | Infra | Docker Compose, VS Code Dev Containers | Postgres, extractor/dbt runner and an optional pgAdmin |
@@ -57,11 +57,11 @@ I chose an **ELT** approach to decouple ingestion from modeling: Python only ext
 dbt builds a three-layer project with a star-schema mart at the end:
 
 ```
-sources            staging                intermediate        marts
-────────           ────────────────       ────────────        ───────────────────────────
-generation_log ──▶ stg_generation_log ──▶ int_generation ──▶ fact_generation_by_source ─┐
-                                                                                          ├─▶ dim_calendar
-load_log       ──▶ stg_load_log       ──▶ int_load       ──▶ fact_load ─────────────────┘
+seeds                sources            staging                intermediate        marts
+─────────────        ─────────────      ────────────────       ────────────        ───────────────────────────
+country_codes        generation_log ──▶ stg_generation_log ──▶ int_generation ──▶ fact_generation_by_source ─┐
+                                                                                                               ├─▶ dim_calendar
+energy_sources       load_log       ──▶ stg_load_log       ──▶ int_load       ──▶ fact_load ─────────────────┘
 ```
 
 Data quality is enforced with dbt tests that run as part of `dbt build` (e.g. `not_null` on timestamps and country codes, `non_negative` on load and generation values). If a test fails, the build tells you before bad numbers reach the dashboard.
