@@ -51,3 +51,35 @@ I chose an **ELT** approach to decouple ingestion from modeling: Python only ext
 **About the source:** ENTSO-E is the European Network of Transmission System Operators for Electricity. It brings together 40 operators from 36 countries to promote the internal electricity market and the secure operation of the European grid.
 
 ---
+
+## Data model
+
+dbt builds a three-layer project with a star-schema mart at the end:
+
+```
+sources            staging                intermediate        marts
+────────           ────────────────       ────────────        ───────────────────────────
+generation_log ──▶ stg_generation_log ──▶ int_generation ──▶ fact_generation_by_source ─┐
+                                                                                          ├─▶ dim_calendar
+load_log       ──▶ stg_load_log       ──▶ int_load       ──▶ fact_load ─────────────────┘
+```
+
+Data quality is enforced with dbt tests that run as part of `dbt build` (e.g. `not_null` on timestamps and country codes, `non_negative` on load and generation values). If a test fails, the build tells you before bad numbers reach the dashboard.
+
+<details>
+<summary><b>Lineage graphs (from the dbt docs)</b></summary>
+
+<br>
+
+**Load**
+
+![Load lineage](images/dag_1.png)
+
+**Generation**
+
+![Generation lineage](images/dag_2.png)
+
+</details>
+
+---
+
