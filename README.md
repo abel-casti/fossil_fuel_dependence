@@ -6,7 +6,7 @@ An end-to-end data engineering and analytics project covering **Spain, France, B
 
 ![Dashboard overview](images/dashboard_yearly.png)
 
-> 📚 **[Browse the dbt documentation & lineage](https://placeholder_for_dbt_documentation)**
+> 📚 **[Browse the dbt documentation & lineage](https://abel-casti.github.io/fossil_fuel_dependence/)**
 
 ---
 
